@@ -36,38 +36,32 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         const lines = logMessage.stacktrace.split("\n");
         return Promise.resolve(
           lines.map((line) => {
-            const match = line.match(/\(at\s+(.*):(\d+)\)/);
-            if (match) {
-              const [, file, lineNum] = match;
-              if (file.startsWith("Assets")) {
-                const treeItem: LogTreeItem = new LogTreeItem(
-                  line,
-                  vscode.TreeItemCollapsibleState.None,
-                  {
-                    command: "vscode.open",
-                    arguments: [
-                      vscode.Uri.file(vscode.workspace.rootPath + "/" + file),
-                      {
-                        selection: new vscode.Range(
-                          +lineNum - 1,
-                          0,
-                          +lineNum - 1,
-                          0
-                        ),
-                      },
-                    ],
-                    title: "Open File",
-                  }
-                );
-                treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
-                return treeItem;
-              } else {
-                return new LogTreeItem(
-                  line,
-                  vscode.TreeItemCollapsibleState.None
-                );
-              }
-            } else {
+            const path = this.getPath(line);
+            if (path) {
+              const [file, lineNum] = path;
+              const treeItem: LogTreeItem = new LogTreeItem(
+                line,
+                vscode.TreeItemCollapsibleState.None,
+                {
+                  command: "vscode.open",
+                  arguments: [
+                    vscode.Uri.file(vscode.workspace.rootPath + "/" + file),
+                    {
+                      selection: new vscode.Range(
+                        +lineNum - 1,
+                        0,
+                        +lineNum - 1,
+                        0
+                      ),
+                    },
+                  ],
+                  title: "Open File",
+                }
+              );
+              treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
+              return treeItem;
+            }
+            else {
               return new LogTreeItem(
                 line,
                 vscode.TreeItemCollapsibleState.None
@@ -107,8 +101,22 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         return new vscode.ThemeIcon("debug-stackframe-dot");
     }
   }
+  getPath(line: string): [string, string]|undefined {
+    const match = line.match(/\(at\s+(.*):(\d+)\)/);
+    if (match) {
+      const [, file, lineNum] = match;
+      if (file.startsWith("Assets")) {
+        return [file, lineNum];
+      }
+      else {
+        return undefined;
+      }
+    }
+    return undefined;      
+  }
   addLogMessage(logMessage: LogMessage) {
     this.logMessages.push(logMessage);
     this._onDidChangeTreeData.fire(undefined);
   }
 }
+
