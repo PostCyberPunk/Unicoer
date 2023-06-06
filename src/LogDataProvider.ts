@@ -10,7 +10,7 @@ class LogTreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly command?: vscode.Command
+    public readonly command?: vscode.Command // public readonly iconPath?: vscode.ThemeIcon | undefined|string
   ) {
     super(label, collapsibleState);
   }
@@ -36,21 +36,37 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         const lines = logMessage.stacktrace.split("\n");
         return Promise.resolve(
           lines.map((line) => {
-            const match = line.match(/at\s+.*\((.*):(\d+)\)/);
+            const match = line.match(/\(at\s+(.*):(\d+)\)/);
             if (match) {
-              const [, file, line] = match;
-              return new LogTreeItem(
-                line,
-                vscode.TreeItemCollapsibleState.None,
-                {
-                  command: "vscode.open",
-                  arguments: [
-                    vscode.Uri.file(file),
-                    {selection: new vscode.Range(+line - 1, 0, +line - 1, 0)},
-                  ],
-                  title: "Open File",
-                }
-              );
+              const [, file, lineNum] = match;
+              if (file.startsWith("Assets")) {
+                const treeItem: LogTreeItem = new LogTreeItem(
+                  line,
+                  vscode.TreeItemCollapsibleState.None,
+                  {
+                    command: "vscode.open",
+                    arguments: [
+                      vscode.Uri.file(vscode.workspace.rootPath + "/" + file),
+                      {
+                        selection: new vscode.Range(
+                          +lineNum - 1,
+                          0,
+                          +lineNum - 1,
+                          0
+                        ),
+                      },
+                    ],
+                    title: "Open File",
+                  }
+                );
+                treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
+                return treeItem;
+              } else {
+                return new LogTreeItem(
+                  line,
+                  vscode.TreeItemCollapsibleState.None
+                );
+              }
             } else {
               return new LogTreeItem(
                 line,
@@ -91,7 +107,6 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         return new vscode.ThemeIcon("debug-stackframe-dot");
     }
   }
-
   addLogMessage(logMessage: LogMessage) {
     this.logMessages.push(logMessage);
     this._onDidChangeTreeData.fire(undefined);
