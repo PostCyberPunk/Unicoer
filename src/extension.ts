@@ -1,3 +1,5 @@
+//TODO: Collapse the same message
+//TODO: add timestampe to message
 import * as vscode from "vscode";
 import * as dgram from "dgram";
 import {LogDataProvider, LogMessage, LogTreeItem} from "./LogDataProvider";
@@ -24,9 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   server.bind(PORT);
 
+  //Navigation
   vscode.commands.registerCommand("unicoer.clearLog", () => {
     logDataProvider.clearLogMessages();
   });
+  //context menu
+  //TODO: add a command to copy stack
   vscode.commands.registerCommand(
     "unicoer.copyMessage",
     (item: LogTreeItem) => {
@@ -42,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  //TODO: add a command to start server
   context.subscriptions.push(
     vscode.commands.registerCommand("unicoer.stopServer", () => {
       server.close();
