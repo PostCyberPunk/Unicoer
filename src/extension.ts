@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as dgram from "dgram";
-import {LogDataProvider, LogMessage} from "./LogDataProvider";
+import {LogDataProvider, LogMessage, LogTreeItem} from "./LogDataProvider";
 
 const PORT = 10248;
 const server = dgram.createSocket("udp4");
@@ -23,6 +23,24 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   server.bind(PORT);
+
+  vscode.commands.registerCommand("unicoer.clearLog", () => {
+    logDataProvider.clearLogMessages();
+  });
+  vscode.commands.registerCommand(
+    "unicoer.copyMessage",
+    (item: LogTreeItem) => {
+      vscode.env.clipboard.writeText(item.label);
+    }
+  );
+  vscode.commands.registerCommand(
+    "unicoer.goggleMessage",
+    (item: LogTreeItem) => {
+      vscode.env.openExternal(
+        vscode.Uri.parse(`https://www.google.com/search?q=${item.label}`)
+      );
+    }
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("unicoer.stopServer", () => {

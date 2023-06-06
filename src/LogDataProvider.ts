@@ -6,7 +6,7 @@ export interface LogMessage {
   stackTrace: string;
 }
 
-class LogTreeItem extends vscode.TreeItem {
+export class LogTreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
@@ -36,6 +36,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         const lines = logMessage.stackTrace.split("\n");
         return Promise.resolve(
           lines.map((line) => {
+            //TODO: remove blank lines
             const path = this.getPath(line);
             if (path) {
               const [file, lineNum] = path;
@@ -116,5 +117,8 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     this.logMessages.push(logMessage);
     this._onDidChangeTreeData.fire(undefined);
   }
+  clearLogMessages() {
+    this.logMessages = [];
+    this._onDidChangeTreeData.fire(undefined);
+  }
 }
-

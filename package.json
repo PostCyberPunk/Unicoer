@@ -16,26 +16,60 @@
   "contributes": {
     "commands": [
       {
-        "command": "unicoer.sotpServer",
-        "title": "sotpServer"
+        "command": "unicoer.stopServer",
+        "title": "stopServer"
+      },
+      {
+        "command": "unicoer.clearLog",
+        "title": "Clear Log",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "unicoer.copyMessage",
+        "title": "Copy Message",
+        "icon": "$(clippy)"
+      },
+      {
+        "command": "unicoer.goggleMessage",
+        "title": "Google Message",
+        "icon": "$(search)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "unity-console",
-          "icon":"$(heart)",
+          "icon": "$(console)",
           "title": "Unity console"
         }
       ]
     },
     "views": {
-      "unity-console":[
+      "unity-console": [
         {
           "id": "unity-log-tree",
           "name": "Unity Console Log",
-          "icon":"$(heart)",
+          "icon": "$(console)",
           "contextualTitle": "Unity Tree"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "unicoer.clearLog",
+          "when": "view == unity-log-tree",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+         "command": "unicoer.copyMessage",
+          "when": "view == unity-log-tree"
+        },
+        {
+          "command": "unicoer.goggleMessage",
+          "when": "view == unity-log-tree"
         }
       ]
     }
