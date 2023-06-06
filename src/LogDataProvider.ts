@@ -65,12 +65,13 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     } else {
       return Promise.resolve(
         this.logMessages.map((logMessage) => {
-					let icon = this.getIcon(logMessage.type);
-          return new LogTreeItem(
+          const treeItem: LogTreeItem = new LogTreeItem(
             logMessage.context,
             vscode.TreeItemCollapsibleState.Collapsed,
             undefined
           );
+          treeItem.iconPath = this.getIcon(logMessage.type);
+          return treeItem;
         })
       );
     }
@@ -86,6 +87,8 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       case "Error":
         return new vscode.ThemeIcon("error");
         break;
+      default:
+        return new vscode.ThemeIcon("debug-stackframe-dot");
     }
   }
 
