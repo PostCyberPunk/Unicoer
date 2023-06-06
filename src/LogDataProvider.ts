@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 
 export interface LogMessage {
   type: string;
-  context: string;
-  stacktrace: string;
+  message: string;
+  stackTrace: string;
 }
 
 class LogTreeItem extends vscode.TreeItem {
@@ -30,10 +30,10 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
   getChildren(element?: LogTreeItem): Thenable<LogTreeItem[]> {
     if (element) {
       const logMessage = this.logMessages.find(
-        (logMessage) => logMessage.context === element.label
+        (logMessage) => logMessage.message === element.label
       );
       if (logMessage) {
-        const lines = logMessage.stacktrace.split("\n");
+        const lines = logMessage.stackTrace.split("\n");
         return Promise.resolve(
           lines.map((line) => {
             const path = this.getPath(line);
@@ -60,8 +60,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
               );
               treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
               return treeItem;
-            }
-            else {
+            } else {
               return new LogTreeItem(
                 line,
                 vscode.TreeItemCollapsibleState.None
@@ -76,7 +75,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       return Promise.resolve(
         this.logMessages.map((logMessage) => {
           const treeItem: LogTreeItem = new LogTreeItem(
-            logMessage.context,
+            logMessage.message,
             vscode.TreeItemCollapsibleState.Collapsed,
             undefined
           );
@@ -101,18 +100,17 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
         return new vscode.ThemeIcon("debug-stackframe-dot");
     }
   }
-  getPath(line: string): [string, string]|undefined {
+  getPath(line: string): [string, string] | undefined {
     const match = line.match(/\(at\s+(.*):(\d+)\)/);
     if (match) {
       const [, file, lineNum] = match;
       if (file.startsWith("Assets")) {
         return [file, lineNum];
-      }
-      else {
+      } else {
         return undefined;
       }
     }
-    return undefined;      
+    return undefined;
   }
   addLogMessage(logMessage: LogMessage) {
     this.logMessages.push(logMessage);
