@@ -125,6 +125,24 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       },1000);
     }
   }
+  //TODO: add cache stack to recent log,so we can check if the log is same
+  //Method 1 lamada
+  //Most likely will be dead...
+  // checkSameLog(logMessage: LogMessage): boolean {
+  //   const sameLog = this.logMessages.find(
+  //     (log) =>
+  //       log.message === logMessage.message &&
+  //       log.stackTrace === logMessage.stackTrace
+  //   );
+  //   if (sameLog) {
+  //    return true;
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+  //Method 2 use map
+  //Method 3 use hash for stacktrace
   clearLogMessages() {
     this.logMessages = [];
     this._onDidChangeTreeData.fire(undefined);
