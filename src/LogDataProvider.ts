@@ -22,7 +22,8 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     this._onDidChangeTreeData.event;
 
   private logMessages: LogMessage[] = [];
-
+  // private updateTimer: NodeJS.Timeout | undefined;
+  private timerRuning = false;
   getTreeItem(element: LogTreeItem): vscode.TreeItem {
     return element;
   }
@@ -115,7 +116,14 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
   }
   addLogMessage(logMessage: LogMessage) {
     this.logMessages.push(logMessage);
-    this._onDidChangeTreeData.fire(undefined);
+    if (!this.timerRuning) {
+      this._onDidChangeTreeData.fire(undefined);
+      this.timerRuning=true;
+      setTimeout(() => {
+        this._onDidChangeTreeData.fire(undefined);
+        this.timerRuning=false;
+      },1000);
+    }
   }
   clearLogMessages() {
     this.logMessages = [];
