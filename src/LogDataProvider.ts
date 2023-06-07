@@ -1,9 +1,17 @@
+import { log } from "console";
 import * as vscode from "vscode";
 
 export interface LogMessage {
-  type: string;
+  type: LogType;
   message: string;
   stackTrace: string;
+}
+enum LogType {
+  error = 0,
+  assert = 1,
+  warning = 2,
+  log = 3,
+  exception = 4,
 }
 
 export class LogTreeItem extends vscode.TreeItem {
@@ -87,19 +95,25 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       );
     }
   }
-  getIcon(msgtype: string): vscode.ThemeIcon | undefined {
+  getIcon(msgtype: LogType): vscode.ThemeIcon | undefined {
     switch (msgtype) {
-      case "Log":
+      case LogType.log:
         return new vscode.ThemeIcon("info");
         break;
-      case "Warning":
+      case LogType.warning:
         return new vscode.ThemeIcon("warning");
         break;
-      case "Error":
+      case LogType.error:
         return new vscode.ThemeIcon("error");
         break;
-      default:
+      case LogType.assert:
         return new vscode.ThemeIcon("debug-stackframe-dot");
+        break;
+      case LogType.exception:
+        return new vscode.ThemeIcon("close");
+        break;
+      default:
+        return new vscode.ThemeIcon("question");
     }
   }
   getPath(line: string): [string, string] | undefined {
