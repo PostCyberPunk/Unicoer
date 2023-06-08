@@ -1,4 +1,4 @@
-import { log } from "console";
+import {log} from "console";
 import * as vscode from "vscode";
 
 export interface LogMessage {
@@ -12,6 +12,10 @@ enum LogType {
   warning = 2,
   log = 3,
   exception = 4,
+}
+interface LogEntry extends LogMessage {
+  count: number;
+  // date: Date;
 }
 
 export class LogTreeItem extends vscode.TreeItem {
@@ -29,7 +33,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
   readonly onDidChangeTreeData: vscode.Event<LogTreeItem | undefined> =
     this._onDidChangeTreeData.event;
 
-  private logMessages: LogMessage[] = [];
+  private logEntries: LogEntry[] = [];
   // private updateTimer: NodeJS.Timeout | undefined;
   private timerRuning = false;
   getTreeItem(element: LogTreeItem): vscode.TreeItem {
@@ -38,11 +42,11 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
 
   getChildren(element?: LogTreeItem): Thenable<LogTreeItem[]> {
     if (element) {
-      const logMessage = this.logMessages.find(
-        (logMessage) => logMessage.message === element.label
+      const logEntry = this.logEntries.find(
+        (logEntry) => logEntry.message === element.label
       );
-      if (logMessage) {
-        const lines = logMessage.stackTrace.split("\n");
+      if (logEntry) {
+        const lines = logEntry.stackTrace.split("\n");
         return Promise.resolve(
           lines.map((line) => {
             //TODO: remove blank lines
@@ -83,7 +87,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       }
     } else {
       return Promise.resolve(
-        this.logMessages.map((logMessage) => {
+        this.logEntries.map((logMessage) => {
           const treeItem: LogTreeItem = new LogTreeItem(
             logMessage.message,
             vscode.TreeItemCollapsibleState.Collapsed,
@@ -129,14 +133,16 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     return undefined;
   }
   addLogMessage(logMessage: LogMessage) {
-    this.logMessages.push(logMessage);
+    //Add logmessage to logEntries
+    //TODO: Check checkSameLog
+    const logEntry = {...logMessage, count: 0};
     if (!this.timerRuning) {
       this._onDidChangeTreeData.fire(undefined);
-      this.timerRuning=true;
+      this.timerRuning = true;
       setTimeout(() => {
         this._onDidChangeTreeData.fire(undefined);
-        this.timerRuning=false;
-      },1000);
+        this.timerRuning = false;
+      }, 1000);
     }
   }
   //TODO: add cache stack to recent log,so we can check if the log is same
@@ -158,7 +164,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
   //Method 2 use map
   //Method 3 use hash for stacktrace
   clearLogMessages() {
-    this.logMessages = [];
+    this.logEntries = [];
     this._onDidChangeTreeData.fire(undefined);
   }
 }
