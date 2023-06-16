@@ -40,7 +40,6 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
   getTreeItem(element: LogTreeItem): vscode.TreeItem {
     return element;
   }
-
   //make htis more radeable
   getChildren(element?: LogTreeItem): Thenable<LogTreeItem[]> {
     if (element) {
@@ -49,59 +48,61 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
       );
       if (logEntry) {
         const lines = logEntry.stackTrace.split("\n");
-        return Promise.resolve(
-          lines.map((line) => {
-            //TODO: remove blank lines
-            const path = this.getPath(line);
-            if (path) {
-              const [file, lineNum] = path;
-              const treeItem: LogTreeItem = new LogTreeItem(
-                line,
-                vscode.TreeItemCollapsibleState.None,
-                {
-                  command: "vscode.open",
-                  arguments: [
-                    vscode.Uri.file(vscode.workspace.rootPath + "/" + file),
-                    {
-                      selection: new vscode.Range(
-                        +lineNum - 1,
-                        0,
-                        +lineNum - 1,
-                        0
-                      ),
-                    },
-                  ],
-                  title: "Open File",
-                }
-              );
-              treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
-              return treeItem;
-            } else {
-              return new LogTreeItem(
-                line,
-                vscode.TreeItemCollapsibleState.None
-              );
-            }
-          })
-        );
+        const childItems: LogTreeItem[] = [];
+        const regex = /at\s+(?<file>.+):(?<line>\d+)/;
+        for (const line of lines) {
+          const match = regex.exec(line);
+          if (match) {
+            const { file, line: lineNum } = match.groups!;
+            const treeItem = new LogTreeItem(
+              line,
+              vscode.TreeItemCollapsibleState.None,
+              {
+                command: "vscode.open",
+                arguments: [
+                  vscode.Uri.file(vscode.workspace.rootPath + "/" + file),
+                  {
+                    selection: new vscode.Range(
+                      +lineNum - 1,
+                      0,
+                      +lineNum - 1,
+                      0
+                    ),
+                  },
+                ],
+                title: "Open File",
+              }
+            );
+            treeItem.iconPath = new vscode.ThemeIcon("file-symlink-file");
+            childItems.push(treeItem);
+          } else if (line.trim() !== "") {
+            childItems.push(new LogTreeItem(line, vscode.TreeItemCollapsibleState.None));
+          }
+        }
+        return Promise.resolve(childItems);
       } else {
         return Promise.resolve([]);
       }
     } else {
-      return Promise.resolve(
-        this.logEntries.map((logMessage) => {
-          const treeItem: LogTreeItem = new LogTreeItem(
+      const logItems: LogTreeItem[] = [];
+      const logMap = new Map<string, LogTreeItem>();
+      for (const logMessage of this.logEntries) {
+        let logItem = logMap.get(logMessage.message);
+        if (!logItem) {
+          logItem = new LogTreeItem(
             logMessage.message,
             vscode.TreeItemCollapsibleState.Collapsed,
             undefined
           );
-          treeItem.iconPath = this.getIcon(logMessage.type);
+          logItem.iconPath = this.getIcon(logMessage.type);
           if (logMessage.count > 1) {
-            treeItem.description = logMessage.count.toString();
+            logItem.description = logMessage.count.toString();
           }
-          return treeItem;
-        })
-      );
+          logMap.set(logMessage.message, logItem);
+        }
+        logItems.push(logItem);
+      }
+      return Promise.resolve(logItems);
     }
   }
   getIcon(msgtype: LogType): vscode.ThemeIcon | undefined {
