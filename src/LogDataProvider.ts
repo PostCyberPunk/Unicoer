@@ -95,6 +95,9 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
             undefined
           );
           treeItem.iconPath = this.getIcon(logMessage.type);
+          if (logMessage.count > 1) {
+            treeItem.description = logMessage.count.toString();
+          }
           return treeItem;
         })
       );
