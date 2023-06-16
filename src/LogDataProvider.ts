@@ -136,6 +136,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     //Add logmessage to logEntries
     //TODO: Check checkSameLog
     const logEntry = {...logMessage, count: 0};
+    this.logEntries.push(logEntry);
     if (!this.timerRuning) {
       this._onDidChangeTreeData.fire(undefined);
       this.timerRuning = true;
