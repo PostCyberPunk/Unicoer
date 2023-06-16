@@ -34,6 +34,7 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     this._onDidChangeTreeData.event;
 
   private logEntries: LogEntry[] = [];
+  // private logBuffer: LogEntry[] = [];
   // private updateTimer: NodeJS.Timeout | undefined;
   private timerRuning = false;
   getTreeItem(element: LogTreeItem): vscode.TreeItem {
@@ -132,11 +133,28 @@ export class LogDataProvider implements vscode.TreeDataProvider<LogTreeItem> {
     }
     return undefined;
   }
+  //Check if the log is same,if same,add count,else add new log and push to logbuffer
+  checkSameLog(logMessage: LogMessage): boolean {
+    const sameLog = this.logEntries.find(
+      (log) =>
+        log.message === logMessage.message &&
+        log.stackTrace === logMessage.stackTrace
+    );
+    if (sameLog) {
+      sameLog.count++;
+      return true;
+    } else {
+      // this.logBuffer.push({...logMessage, count: 1});
+      return false;
+    }
+  }
   addLogMessage(logMessage: LogMessage) {
     //Add logmessage to logEntries
     //TODO: Check checkSameLog
-    const logEntry = {...logMessage, count: 0};
-    this.logEntries.push(logEntry);
+    const logEntry = {...logMessage, count: 1};
+    if (!this.checkSameLog(logMessage)) {
+      this.logEntries.push(logEntry);
+    }
     if (!this.timerRuning) {
       this._onDidChangeTreeData.fire(undefined);
       this.timerRuning = true;
